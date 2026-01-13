@@ -54,16 +54,50 @@ struct SolutionIndicators {
     routes_hash = get_vector_hash(routes_sizes);
   }
 
+  // Conditional objective function:
+  // - If priorities are set: maximize profit (priority_sum - cost)
+  // - If no priorities: use default lexicographic (max jobs, min cost)
   friend bool operator<(const SolutionIndicators& lhs,
                         const SolutionIndicators& rhs) {
-    return std::tie(rhs.priority_sum,
-                    rhs.assigned,
+    // Check if priorities are being used
+    const bool using_priorities =
+      (lhs.priority_sum > 0) || (rhs.priority_sum > 0);
+
+    if (using_priorities) {
+      // Profit-based comparison: maximize (priority_sum * scale - cost)
+      // When using custom cost matrix, VROOM scales costs by:
+      // DURATION_FACTOR * COST_FACTOR = 100 * 3600 = 360,000
+      // We must scale priority to match.
+      constexpr int64_t PRIORITY_SCALE = DURATION_FACTOR * COST_FACTOR;  // 360,000
+
+      const int64_t lhs_profit =
+        static_cast<int64_t>(lhs.priority_sum) * PRIORITY_SCALE - lhs.eval.cost;
+      const int64_t rhs_profit =
+        static_cast<int64_t>(rhs.priority_sum) * PRIORITY_SCALE - rhs.eval.cost;
+
+      if (lhs_profit != rhs_profit) {
+        return lhs_profit > rhs_profit;
+      }
+
+      // Tie-breakers: more jobs, fewer vehicles, lower duration
+      return std::tie(rhs.assigned,
+                      lhs.used_vehicles,
+                      lhs.eval.duration,
+                      lhs.eval.distance,
+                      lhs.routes_hash) < std::tie(lhs.assigned,
+                                                  rhs.used_vehicles,
+                                                  rhs.eval.duration,
+                                                  rhs.eval.distance,
+                                                  rhs.routes_hash);
+    }
+
+    // Default lexicographic: max jobs, then min cost
+    return std::tie(rhs.assigned,
                     lhs.eval.cost,
                     lhs.used_vehicles,
                     lhs.eval.duration,
                     lhs.eval.distance,
-                    lhs.routes_hash) < std::tie(lhs.priority_sum,
-                                                lhs.assigned,
+                    lhs.routes_hash) < std::tie(lhs.assigned,
                                                 rhs.eval.cost,
                                                 rhs.used_vehicles,
                                                 rhs.eval.duration,
@@ -75,3 +109,4 @@ struct SolutionIndicators {
 } // namespace vroom::utils
 
 #endif
+
