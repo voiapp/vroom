@@ -11,7 +11,6 @@ All rights reserved (see LICENSE).
 */
 
 #include <algorithm>
-#include <iostream>
 #include <tuple>
 
 #include "structures/typedefs.h"
@@ -75,16 +74,6 @@ struct SolutionIndicators {
         static_cast<int64_t>(lhs.priority_sum) * PRIORITY_SCALE - lhs.eval.cost;
       const int64_t rhs_profit =
         static_cast<int64_t>(rhs.priority_sum) * PRIORITY_SCALE - rhs.eval.cost;
-
-      // Debug: Log internal values (remove after debugging)
-      std::cerr << "[DEBUG] LHS: priority=" << lhs.priority_sum
-                << " (scaled=" << lhs.priority_sum * PRIORITY_SCALE << ")"
-                << " cost=" << lhs.eval.cost
-                << " profit=" << lhs_profit
-                << " | RHS: priority=" << rhs.priority_sum
-                << " (scaled=" << rhs.priority_sum * PRIORITY_SCALE << ")"
-                << " cost=" << rhs.eval.cost
-                << " profit=" << rhs_profit << "\n";
 
       if (lhs_profit != rhs_profit) {
         return lhs_profit > rhs_profit;
