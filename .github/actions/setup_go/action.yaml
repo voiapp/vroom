@@ -1,0 +1,22 @@
+name: Set up Go
+description: Installs Go, handles cache and configures Git authentication
+
+inputs:
+  GITHUB_TOKEN:
+    description: GitHub token with access to private VOI Go packages
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure Git authentication
+      run: |
+        echo "machine github.com login x-access-token password ${{ inputs.GITHUB_TOKEN }}" > ~/.netrc
+        chmod 600 ~/.netrc
+      shell: bash
+
+    - name: Install Go
+      id: install-go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
