@@ -1,0 +1,7 @@
+---
+app: 'task-routing'
+repository: 'europe-docker.pkg.dev/vanilla-one-206813/task-routing'
+docker_images:
+  images:
+    - name: 'vroom-custom'
+      dockerfile: './deploy/vroom-custom/Dockerfile'

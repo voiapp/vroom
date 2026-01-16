@@ -1,0 +1,54 @@
+name: Release Preview in Stage
+on:
+  pull_request_review:
+    types: [submitted, edited]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  id-token: 'write'
+  contents: 'read'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: |-
+      contains(github.event.review.body, 'deploy to stage please') ||
+      (contains(github.event.comment.body, 'deploy to stage please') && github.event.issue.pull_request)
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: refs/pull/${{ env.PR_NUMBER }}/head
+          submodules: true
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: 'projects/960796227431/locations/global/workloadIdentityPools/github-pool/providers/github-repos'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install voireleaser
+        run: go install github.com/voiapp/voireleaser/cmd/voireleaser@latest
+        env:
+          GOPRIVATE: github.com/voiapp/*
+          GITHUB_TOKEN: ${{ secrets.BENDER_PAT }}
+
+      - name: Release application
+        run: |
+          voireleaser release \
+            --environments stage \
+            --tag PR-${{ env.PR_NUMBER }} \
+            --author ${{ github.actor }} \
+            --commit "$(git rev-parse HEAD)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.BENDER_PAT }}
+          VOIRELEASER_GPG_KEY: ${{ secrets.BENDER_GPG_KEY }}
+          VOIRELEASER_GPG_KEY_PASSPHRASE: ${{ secrets.BENDER_GPG_PASSPHRASE }}
+          VOIRELEASER_AUTHOR_EMAIL: ${{ secrets.BENDER_EMAIL }}
