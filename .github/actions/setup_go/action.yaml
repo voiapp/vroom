@@ -13,6 +13,7 @@ runs:
       run: |
         echo "machine github.com login x-access-token password ${{ inputs.GITHUB_TOKEN }}" > ~/.netrc
         chmod 600 ~/.netrc
+        git config --global url."https://x-access-token:${{ inputs.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
       shell: bash
 
     - name: Install Go
