@@ -1,0 +1,21 @@
+# Vroom CLI config
+cliArgs:
+  baseurl: ""
+  geometry: true
+  limit: 0
+  logdir: "/conf"
+  maxjobs: 2000
+  maxlocations: 1000
+  maxvehicles: 200
+  override: false
+  path: ""
+  port: 3000
+  router: "osrm"
+  threads: 4
+  timeout: 300000
+  trace: false
+  winsz: 0
+  explore: 5
+  logsize: 1048576
+  logmax: 10
+  loglevel: "debug"
